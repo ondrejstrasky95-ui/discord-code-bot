@@ -53,6 +53,14 @@ const CONFIG = {
     CHANNEL_ID: process.env.CHANNEL_ID,
     MAX_CLAIMS_PER_USER: 3
 };
+
+// DEBUG: Let's see what we're getting
+console.log('=== ENVIRONMENT DEBUG ===');
+console.log('DISCORD_TOKEN exists:', !!process.env.DISCORD_TOKEN);
+console.log('DISCORD_TOKEN length:', process.env.DISCORD_TOKEN ? process.env.DISCORD_TOKEN.length : 'undefined');
+console.log('CHANNEL_ID:', process.env.CHANNEL_ID);
+console.log('CONFIG.TOKEN:', CONFIG.TOKEN ? 'SET' : 'UNDEFINED');
+console.log('========================');
 client.once('ready', async () => {
     console.log(`Bot is ready! Logged in as ${client.user.tag}`);
     
@@ -340,3 +348,4 @@ function getTotalUsers() {
 // Start the bot
 
 client.login(CONFIG.TOKEN);
+
