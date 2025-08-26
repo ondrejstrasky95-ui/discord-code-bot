@@ -49,8 +49,8 @@ db.serialize(() => {
 
 // Configuration
 const CONFIG = {
-    TOKEN: process.env.DISCORD_TOKEN || 'MTQwNTkwNTkwNTMzNzQ5OTc5OA.GfERnB.k2xLGIFEvpGEcaqgEduXIdsMURxdxlSFvIMpb4',
-    CHANNEL_ID: process.env.CHANNEL_ID || '1405910909771317339',
+    TOKEN: process.env.DISCORD_TOKEN,
+    CHANNEL_ID: process.env.CHANNEL_ID,
     MAX_CLAIMS_PER_USER: 3
 };
 client.once('ready', async () => {
@@ -338,4 +338,5 @@ function getTotalUsers() {
 }
 
 // Start the bot
+
 client.login(CONFIG.TOKEN);
