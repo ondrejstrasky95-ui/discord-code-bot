@@ -46,7 +46,62 @@ db.serialize(() => {
         }
     });
 });
-
+// Auto-import codes from codes.txt on startup
+async function autoImportCodes() {
+    try {
+        console.log('🔍 Checking if codes need to be imported...');
+        
+        // Check if we already have codes
+        const existingCodes = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM codes', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+        
+        if (existingCodes > 0) {
+            console.log(`✅ Database already has ${existingCodes} codes, skipping import`);
+            return;
+        }
+        
+        console.log('📖 Reading codes from codes.txt...');
+        const fs = require('fs');
+        
+        if (!fs.existsSync('codes.txt')) {
+            console.log('⚠️  codes.txt not found, skipping auto-import');
+            return;
+        }
+        
+        const fileContent = fs.readFileSync('codes.txt', 'utf8');
+        const codes = fileContent
+            .split('\n')
+            .map(code => code.trim())
+            .filter(code => code.length > 0 && !code.includes('!') && !code.includes('addcode'));
+        
+        if (codes.length === 0) {
+            console.log('⚠️  No valid codes found in codes.txt');
+            return;
+        }
+        
+        console.log(`🚀 Importing ${codes.length} codes...`);
+        
+        // Bulk insert
+        const placeholders = codes.map(() => '(?)').join(',');
+        const sql = `INSERT INTO codes (code) VALUES ${placeholders}`;
+        
+        await new Promise((resolve, reject) => {
+            db.run(sql, codes, function(err) {
+                if (err) reject(err);
+                else resolve(this.changes);
+            });
+        });
+        
+        console.log(`✅ Successfully imported ${codes.length} codes!`);
+        
+    } catch (error) {
+        console.error('❌ Error importing codes:', error.message);
+    }
+}
 // Configuration
 const CONFIG = {
     TOKEN: process.env.DISCORD_TOKEN,
@@ -63,6 +118,9 @@ console.log('CONFIG.TOKEN:', CONFIG.TOKEN ? 'SET' : 'UNDEFINED');
 console.log('========================');
 client.once('ready', async () => {
     console.log(`Bot is ready! Logged in as ${client.user.tag}`);
+    
+    // Auto-import codes if needed
+    await autoImportCodes();
     
     // Set up the claim message when bot starts
     await setupClaimMessage();
@@ -348,4 +406,5 @@ function getTotalUsers() {
 // Start the bot
 
 client.login(CONFIG.TOKEN);
+
 
