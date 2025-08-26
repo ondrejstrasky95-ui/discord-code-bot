@@ -1,0 +1,16 @@
+{
+  "name": "discord-code-claim-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that allows users to claim codes from a database",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "sqlite3": "^5.1.6"
+  },
+  "keywords": ["discord", "bot", "codes", "sqlite"],
+  "author": "Your Name",
+  "license": "MIT"
+}
