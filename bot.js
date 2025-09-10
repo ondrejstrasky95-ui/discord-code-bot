@@ -47,22 +47,10 @@ db.serialize(() => {
     });
 });
 // Auto-import codes from codes.txt on startup
+// Auto-import codes from codes.txt on startup
 async function autoImportCodes() {
     try {
-        console.log('🔍 Checking if codes need to be imported...');
-        
-        // Check if we already have codes
-        const existingCodes = await new Promise((resolve, reject) => {
-            db.get('SELECT COUNT(*) as count FROM codes', (err, row) => {
-                if (err) reject(err);
-                else resolve(row.count);
-            });
-        });
-        
-        if (existingCodes > 0) {
-            console.log(`✅ Database already has ${existingCodes} codes, skipping import`);
-            return;
-        }
+        console.log('🔍 Checking for new codes to import...');
         
         console.log('📖 Reading codes from codes.txt...');
         const fs = require('fs');
@@ -73,30 +61,49 @@ async function autoImportCodes() {
         }
         
         const fileContent = fs.readFileSync('codes.txt', 'utf8');
-        const codes = fileContent
+        const allCodes = fileContent
             .split('\n')
             .map(code => code.trim())
             .filter(code => code.length > 0 && !code.includes('!') && !code.includes('addcode'));
         
-        if (codes.length === 0) {
+        if (allCodes.length === 0) {
             console.log('⚠️  No valid codes found in codes.txt');
             return;
         }
         
-        console.log(`🚀 Importing ${codes.length} codes...`);
+        console.log(`📋 Found ${allCodes.length} codes in codes.txt`);
         
-        // Bulk insert
-        const placeholders = codes.map(() => '(?)').join(',');
+        // Check which codes already exist
+        const existingCodes = await new Promise((resolve, reject) => {
+            db.all('SELECT code FROM codes', (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows.map(row => row.code));
+            });
+        });
+        
+        // Find new codes to add
+        const newCodes = allCodes.filter(code => !existingCodes.includes(code));
+        
+        if (newCodes.length === 0) {
+            console.log(`✅ All codes already in database. Total: ${existingCodes.length} codes`);
+            return;
+        }
+        
+        console.log(`🚀 Importing ${newCodes.length} new codes...`);
+        
+        // Bulk insert new codes only
+        const placeholders = newCodes.map(() => '(?)').join(',');
         const sql = `INSERT INTO codes (code) VALUES ${placeholders}`;
         
         await new Promise((resolve, reject) => {
-            db.run(sql, codes, function(err) {
+            db.run(sql, newCodes, function(err) {
                 if (err) reject(err);
                 else resolve(this.changes);
             });
         });
         
-        console.log(`✅ Successfully imported ${codes.length} codes!`);
+        console.log(`✅ Successfully imported ${newCodes.length} new codes!`);
+        console.log(`📊 Total codes in database: ${existingCodes.length + newCodes.length}`);
         
     } catch (error) {
         console.error('❌ Error importing codes:', error.message);
@@ -406,6 +413,7 @@ function getTotalUsers() {
 // Start the bot
 
 client.login(CONFIG.TOKEN);
+
 
 
 
