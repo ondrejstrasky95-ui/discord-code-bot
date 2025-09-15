@@ -113,7 +113,7 @@ async function autoImportCodes() {
 const CONFIG = {
     TOKEN: process.env.DISCORD_TOKEN,
     CHANNEL_ID: process.env.CHANNEL_ID,
-    MAX_CLAIMS_PER_USER: 1
+    MAX_CLAIMS_PER_USER: 3
 };
 
 // DEBUG: Let's see what we're getting
@@ -147,7 +147,7 @@ async function setupClaimMessage() {
             .setTitle('🎁 Claim Your Code!')
             .setDescription('Click the button below to claim a unique code from our database.')
             .setColor(0x00AE86)
-            .setFooter({ text: 'Each user can claim 1 code' });
+            .setFooter({ text: 'Each user can claim up to 3 codes' });
 
         // Create button
         const button = new ButtonBuilder()
@@ -413,6 +413,7 @@ function getTotalUsers() {
 // Start the bot
 
 client.login(CONFIG.TOKEN);
+
 
 
 
